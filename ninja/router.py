@@ -275,27 +275,7 @@ class Router:
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], TCallable]:
         def decorator(view_func: TCallable) -> TCallable:
-            self.add_api_operation(
-                path,
-                methods,
-                view_func,
-                auth=auth,
-                throttle=throttle,
-                response=response,
-                operation_id=operation_id,
-                summary=summary,
-                description=description,
-                tags=tags,
-                deprecated=deprecated,
-                by_alias=by_alias,
-                exclude_unset=exclude_unset,
-                exclude_defaults=exclude_defaults,
-                exclude_none=exclude_none,
-                url_name=url_name,
-                include_in_schema=include_in_schema,
-                openapi_extra=openapi_extra,
-            )
-            return view_func
+            pass
 
         return decorator
 
@@ -321,76 +301,15 @@ class Router:
         include_in_schema: bool = True,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> None:
-        path = re.sub(r"\{uuid:(\w+)\}", r"{uuidstr:\1}", path, flags=re.IGNORECASE)
-        # django by default convert strings to UUIDs
-        # but we want to keep them as strings to let pydantic handle conversion/validation
-        # if user whants UUID object
-        # uuidstr is custom registered converter
-
-        if path not in self.path_operations:
-            path_view = PathView()
-            self.path_operations[path] = path_view
-        else:
-            path_view = self.path_operations[path]
-
-        by_alias = by_alias is None and self.by_alias or by_alias
-        exclude_unset = exclude_unset is None and self.exclude_unset or exclude_unset
-        exclude_defaults = (
-            exclude_defaults is None and self.exclude_defaults or exclude_defaults
-        )
-        exclude_none = exclude_none is None and self.exclude_none or exclude_none
-
-        path_view.add_operation(
-            path=path,
-            methods=methods,
-            view_func=view_func,
-            auth=auth,
-            throttle=throttle,
-            response=response,
-            operation_id=operation_id,
-            summary=summary,
-            description=description,
-            tags=tags,
-            deprecated=deprecated,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            url_name=url_name,
-            include_in_schema=include_in_schema,
-            openapi_extra=openapi_extra,
-        )
-        if self.api:
-            path_view.set_api_instance(self.api, self)
-
-        return None
+        pass
 
     def set_api_instance(
         self, api: "NinjaAPI", parent_router: Optional["Router"] = None
     ) -> None:
-        if self.auth is NOT_SET and parent_router:
-            self.auth = parent_router.auth
-        self.api = api
-        for path_view in self.path_operations.values():
-            path_view.set_api_instance(self.api, self)
-        for _, router in self._routers:
-            router.set_api_instance(api, self)
+        pass
 
     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
-        prefix = replace_path_param_notation(prefix)
-        for path, path_view in self.path_operations.items():
-            for operation in path_view.operations:
-                path = replace_path_param_notation(path)
-                route = "/".join([i for i in (prefix, path) if i])
-                # to skip lot of checks we simply treat double slash as a mistake:
-                route = normalize_path(route)
-                route = route.lstrip("/")
-
-                url_name = getattr(operation, "url_name", "")
-                if not url_name and self.api:
-                    url_name = self.api.get_operation_url_name(operation, router=self)
-
-                yield django_path(route, path_view.get_view(), name=url_name)
+        pass
 
     def add_router(
         self,
@@ -425,17 +344,4 @@ class Router:
             self._routers.append((prefix, router))
 
     def build_routers(self, prefix: str) -> List[Tuple[str, "Router"]]:
-        if self.api is not None:
-            from ninja.main import debug_server_url_reimport
-
-            if not debug_server_url_reimport():
-                raise ConfigError(
-                    f"Router@'{prefix}' has already been attached to API"
-                    f" {self.api.title}:{self.api.version} "
-                )
-        internal_routes = []
-        for inter_prefix, inter_router in self._routers:
-            _route = normalize_path("/".join((prefix, inter_prefix))).lstrip("/")
-            internal_routes.extend(inter_router.build_routers(_route))
-
-        return [(prefix, self), *internal_routes]
+        pass

@@ -102,21 +102,7 @@ class DjangoGetter:
     #         return default
 
     def _convert_result(self, result: Any) -> Any:
-        if isinstance(result, Manager):
-            return list(result.all())
-
-        elif isinstance(result, getattr(QuerySet, "__origin__", QuerySet)):
-            return list(result)
-
-        if callable(result):
-            return result()
-
-        elif isinstance(result, FieldFile):
-            if not result:
-                return None
-            return result.url
-
-        return result
+        pass
 
     def __repr__(self) -> str:
         return f"<DjangoGetter: {repr(self._obj)}>"
@@ -166,15 +152,7 @@ class Resolver:
         self._takes_context = has_kwargs(self._func) or "context" in arg_names
 
     def run(self, value: Any, info: Any) -> Any:
-        kwargs = {}
-        if self._takes_context:
-            kwargs["context"] = info
-
-        if self._static:
-            return self._func(value, **kwargs)
-        raise NotImplementedError(
-            "Non static resolves are not supported yet"
-        )  # pragma: no cover
+        pass
 
     def __call__(self, getter: DjangoGetter) -> Any:
         kwargs = {}
@@ -275,37 +253,11 @@ class ResolverMetaclass(ModelMetaclass):
 
 
 def _manager_to_queryset(value: Union[Manager, Any]) -> Union[QuerySet, Any]:
-    if isinstance(value, Manager):
-        return value.all()
-    return value
+    pass
 
 
 def _validate_resolvers(cls: Type["Schema"], value: Any, info: ValidationInfo) -> Any:
-    wrapped = ObjectPatcher(value)
-
-    # Resolve path aliases
-    for path in cls._aliases.values():
-        # Don't apply alias if this is a key of an attribute on this object
-        if hasattr(value, path):
-            continue
-
-        if hasattr(value, "__getitem__"):
-            try:
-                value.__getitem__(path)
-                continue
-            except KeyError:
-                pass
-
-        try:
-            wrapped[path] = Variable(path).resolve(value)
-        except VariableDoesNotExist:
-            pass
-
-    # Evaluate resolvers
-    for key, func in cls._ninja_resolvers.items():
-        wrapped[key] = func.run(value, info.context)
-
-    return wrapped
+    pass
 
 
 def _run_root_validator(
@@ -318,13 +270,7 @@ def _run_root_validator(
     # object, then we need to call `handler` directly on `values` before the conversion
     # to DjangoGetter, since any checks or modifications on DjangoGetter's __dict__
     # will not persist to the original object.
-    forbids_extra = cls.model_config.get("extra") == "forbid"
-    should_validate_assignment = cls.model_config.get("validate_assignment", False)
-    if forbids_extra or should_validate_assignment:
-        handler(values)
-
-    values = DjangoGetter(values, cls, info.context)
-    return handler(values)
+    pass
 
 
 class NinjaGenerateJsonSchema(GenerateJsonSchema):
@@ -332,22 +278,7 @@ class NinjaGenerateJsonSchema(GenerateJsonSchema):
         # Pydantic default actually renders null's and default_factory's
         # which really breaks swagger and django model callable defaults
         # so here we completely override behavior
-        json_schema = self.generate_inner(schema["schema"])
-
-        default = None
-        if "default" in schema and schema["default"] is not None:
-            default = self.encode_default(schema["default"])
-
-        if "$ref" in json_schema:
-            # Since reference schemas do not support child keys, we wrap the reference schema in a single-case allOf:
-            result = {"allOf": [json_schema]}
-        else:
-            result = json_schema
-
-        if default is not None:
-            result["default"] = default
-
-        return result
+        pass
 
 
 class Schema(BaseModel, metaclass=ResolverMetaclass):
@@ -358,21 +289,16 @@ class Schema(BaseModel, metaclass=ResolverMetaclass):
 
     @classmethod
     def from_orm(cls: Type[S], obj: Any, **kw: Any) -> S:
-        return cls.model_validate(obj, **kw)
+        pass
 
     def dict(self, *a: Any, **kw: Any) -> DictStrAny:
         "Backward compatibility with pydantic 1.x"
-        return self.model_dump(*a, **kw)
+        pass
 
     @classmethod
     def json_schema(cls) -> DictStrAny:
-        return cls.model_json_schema(schema_generator=NinjaGenerateJsonSchema)
+        pass
 
     @classmethod
     def schema(cls) -> DictStrAny:  # type: ignore
-        warnings.warn(
-            ".schema() is deprecated, use .json_schema() instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls.json_schema()
+        pass

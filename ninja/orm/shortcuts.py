@@ -15,9 +15,8 @@ __all__ = ["S", "L"]
 
 
 def S(model: Any, **kwargs: Any) -> Type[Schema]:
-    return create_schema(model, **kwargs)
+    pass
 
 
 def L(model: Any, **kwargs: Any) -> List[Any]:
-    schema = S(model, **kwargs)
-    return List[schema]  # type: ignore
+    pass

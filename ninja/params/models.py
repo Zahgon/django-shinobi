@@ -40,7 +40,7 @@ TModels = List[TModel]
 
 
 def NestedDict() -> DictStrAny:
-    return defaultdict(NestedDict)
+    pass
 
 
 class ParamModel(BaseModel, ABC):
@@ -69,26 +69,11 @@ class ParamModel(BaseModel, ABC):
 
     @classmethod
     def _map_data_paths(cls, data: DictStrAny) -> DictStrAny:
-        flatten_map = getattr(cls, "__ninja_flatten_map__", None)
-        if not flatten_map:
-            return data
-
-        mapped_data: DictStrAny = NestedDict()
-        for k in flatten_map:
-            if k in data:
-                cls._map_data_path(mapped_data, data[k], flatten_map[k])
-            else:
-                cls._map_data_path(mapped_data, None, flatten_map[k])
-
-        return mapped_data
+        pass
 
     @classmethod
     def _map_data_path(cls, data: DictStrAny, value: Any, path: Tuple) -> None:
-        if len(path) == 1:
-            if value is not None:
-                data[path[0]] = value
-        else:
-            cls._map_data_path(data[path[0]], value, path[1:])
+        pass
 
 
 class QueryModel(ParamModel):
@@ -96,8 +81,7 @@ class QueryModel(ParamModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        list_fields = getattr(cls, "__ninja_collection_fields__", [])
-        return api.parser.parse_querydict(request.GET, list_fields, request)
+        pass
 
 
 class PathModel(ParamModel):
@@ -105,7 +89,7 @@ class PathModel(ParamModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        return path_params
+        pass
 
 
 class HeaderModel(ParamModel):
@@ -115,12 +99,7 @@ class HeaderModel(ParamModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        data = {}
-        headers = request.headers
-        for name in cls.__ninja_flatten_map__:
-            if name in headers:
-                data[name] = headers[name]
-        return data
+        pass
 
 
 class CookieModel(ParamModel):
@@ -128,7 +107,7 @@ class CookieModel(ParamModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        return request.COOKIES
+        pass
 
 
 class BodyModel(ParamModel):
@@ -138,21 +117,7 @@ class BodyModel(ParamModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        if request.body:
-            try:
-                data = api.parser.parse_body(request)
-            except Exception as e:
-                msg = "Cannot parse request body"
-                if settings.DEBUG:
-                    msg += f" ({e})"
-                raise HttpError(400, msg) from e
-
-            varname = getattr(cls, "__read_from_single_attr__", None)
-            if varname:
-                data = {varname: data}
-            return data
-
-        return None
+        pass
 
 
 class FormModel(ParamModel):
@@ -160,8 +125,7 @@ class FormModel(ParamModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        list_fields = getattr(cls, "__ninja_collection_fields__", [])
-        return api.parser.parse_querydict(request.POST, list_fields, request)
+        pass
 
 
 class FileModel(ParamModel):
@@ -169,8 +133,7 @@ class FileModel(ParamModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        list_fields = getattr(cls, "__ninja_collection_fields__", [])
-        return api.parser.parse_querydict(request.FILES, list_fields, request)
+        pass
 
 
 class _HttpRequest(HttpRequest):
@@ -184,17 +147,7 @@ class _MultiPartBodyModel(BodyModel):
     def get_request_data(
         cls, request: HttpRequest, api: "NinjaAPI", path_params: DictStrAny
     ) -> Optional[DictStrAny]:
-        req = _HttpRequest()
-        get_request_data = super().get_request_data
-        results: DictStrAny = {}
-        for name, annotation in cls.__ninja_body_params__.items():
-            if name in request.POST:
-                data = request.POST[name]
-                if annotation is str and data[0] != '"' and data[-1] != '"':
-                    data = f'"{data}"'
-                req.body = data.encode()
-                results[name] = get_request_data(req, api, path_params)
-        return results
+        pass
 
 
 class Param(FieldInfo):  # type: ignore[misc]
@@ -257,7 +210,7 @@ class Param(FieldInfo):  # type: ignore[misc]
     @classmethod
     def _param_source(cls) -> str:
         "Openapi param.in value or body type"
-        return cls.__name__.lower()
+        pass
 
 
 class Path(Param):  # type: ignore[misc]
@@ -293,4 +246,4 @@ class _MultiPartBody(Param):  # type: ignore[misc]
 
     @classmethod
     def _param_source(cls) -> str:
-        return "body"
+        pass

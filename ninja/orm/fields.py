@@ -34,9 +34,7 @@ __all__ = ["create_m2m_link_type", "get_schema_field", "get_related_field_schema
 # https://github.com/vitalik/django-ninja/issues/774
 # @keep_lazy_text
 def title_if_lower(s: str) -> str:
-    if s == s.lower():
-        return s.title()
-    return s
+    pass
 
 
 class AnyObject:
@@ -54,7 +52,7 @@ class AnyObject:
 
     @classmethod
     def validate(cls, value: Any, _: Any) -> Any:
-        return value
+        pass
 
 
 TYPES = {
@@ -98,34 +96,12 @@ TModel = TypeVar("TModel")
 
 
 def register_field(django_field: str, python_type: Any) -> None:
-    TYPES[django_field] = python_type
+    pass
 
 
 @no_type_check
 def create_m2m_link_type(type_: Type[TModel]) -> Type[TModel]:
-    class M2MLink(type_):  # type: ignore
-        @classmethod
-        def __get_pydantic_core_schema__(cls, source, handler):
-            return core_schema.with_info_plain_validator_function(cls._validate)
-
-        @classmethod
-        def __get_pydantic_json_schema__(cls, schema, handler):
-            json_type = {
-                int: "integer",
-                str: "string",
-                float: "number",
-                UUID: "string",
-            }[type_]
-            return {"type": json_type}
-
-        @classmethod
-        def _validate(cls, v: Any, _):
-            try:
-                return v.pk  # when we output queryset - we have db instances
-            except AttributeError:
-                return type_(v)  # when we read payloads we have primakey keys
-
-    return M2MLink
+    pass
 
 
 @no_type_check
@@ -133,127 +109,15 @@ def get_schema_field(
     field: DjangoField, *, depth: int = 0, optional: bool = False
 ) -> Tuple[str, Type, FieldInfo]:
     "Returns pydantic field from django's model field"
-    name = field.name
-    alias = None
-    default = ...
-    default_factory = None
-    description = None
-    title = None
-    max_length = None
-    nullable = False
-    python_type = None
-
-    if field.is_relation:
-        if depth > 0:
-            python_type, field_info = get_related_field_schema(field, depth=depth)
-            return name, python_type, field_info
-
-        internal_type = field.related_model._meta.pk.get_internal_type()
-
-        if not field.concrete and field.auto_created or field.null or optional:
-            default = None
-            nullable = True
-
-        name = getattr(field, "get_attname", None) and field.get_attname()
-
-        pk_type = TYPES.get(internal_type, int)
-        if field.one_to_many or field.many_to_many:
-            m2m_type = create_m2m_link_type(pk_type)
-            python_type = List[m2m_type]  # type: ignore
-        else:
-            python_type = pk_type
-
-    else:
-        _f_name, _f_path, _f_pos, field_options = field.deconstruct()
-        null = field_options.get("null", False)
-        max_length = field_options.get("max_length")
-
-        internal_type = field.get_internal_type()
-        try:
-            python_type = TYPES[internal_type]
-        except KeyError as e:
-            msg = [
-                f"Do not know how to convert django field '{internal_type}'.",
-                "Try from ninja.orm import register_field",
-                f"register_field('{internal_type}', <your-python-type>)",
-            ]
-            raise ConfigError("\n".join(msg)) from e
-
-        if null or optional:
-            default = None
-            nullable = True
-
-        if field.has_default():
-            if callable(field.default):
-                default_factory = field.default
-            else:
-                default = field.default
-
-        if field.choices is not None:
-            if isinstance(field.choices, NinjaChoicesList):  # pragma: no cover
-                python_type = field.choices.enum
-            else:
-                choices = tuple(choice[0] for choice in field.choices)
-                python_type = Literal[choices]
-
-    if default_factory:
-        default = PydanticUndefined
-
-    if nullable:
-        python_type = Union[python_type, None]  # aka Optional in 3.7+
-
-    description = field.help_text or None
-    title = title_if_lower(field.verbose_name)
-
-    return (
-        name,
-        python_type,
-        FieldInfo(
-            default=default,
-            alias=alias,
-            validation_alias=alias,
-            serialization_alias=alias,
-            default_factory=default_factory,
-            title=title,
-            description=description,
-            max_length=max_length,
-        ),
-    )
+    pass
 
 
 @no_type_check
 def get_related_field_schema(
     field: DjangoField, *, depth: int
 ) -> Tuple[OpenAPISchema, FieldInfo]:
-    from ninja.orm import create_schema
-
-    model = field.related_model
-    schema = create_schema(model, depth=depth - 1)
-    default = ...
-    if not field.concrete and field.auto_created or field.null:
-        default = None
-    if isinstance(field, ManyToManyField):
-        schema = List[schema]  # type: ignore
-
-    return (
-        schema,
-        FieldInfo(
-            default=default,
-            description=field.help_text,
-            title=title_if_lower(field.verbose_name),
-        ),
-    )
+    pass
 
 
 def get_field_property_accessors(field: DjangoField) -> property:
-    attribute_name = cast(
-        str, getattr(field, "get_attname", None) and field.get_attname()
-    )
-
-    def getter(self: BaseModel) -> Any:
-        return getattr(self, attribute_name)
-
-    def setter(self: BaseModel, value: Any) -> None:
-        setattr(self, attribute_name, value)
-
-    return property(getter, setter)
+    pass

@@ -17,7 +17,7 @@ else:  # pragma: no cover
     class NinjaChoicesType(ChoicesType):  # type: ignore[no-redef]
         @property
         def choices(self) -> "List[Tuple[Any, str]]":
-            return NinjaChoicesList(super().choices, choices_enum=self)
+            pass
 
     class ChoicesMixin(metaclass=NinjaChoicesType):  # type: ignore[no-redef]
         pass

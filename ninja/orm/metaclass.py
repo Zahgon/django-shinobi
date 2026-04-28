@@ -21,49 +21,7 @@ class MetaConf:
 
     @staticmethod
     def from_schema_class(name: str, namespace: dict) -> "MetaConf":
-        if "Meta" in namespace:
-            meta = namespace["Meta"]
-            model = meta.model
-            fields = getattr(meta, "fields", None)
-            exclude = getattr(meta, "exclude", None)
-            optional_fields = getattr(meta, "fields_optional", None)
-
-        elif "Config" in namespace:
-            config = namespace["Config"]
-            model = config.model
-            fields = getattr(config, "model_fields", None)
-            exclude = getattr(config, "model_exclude", None)
-            optional_fields = getattr(config, "model_fields_optional", None)
-
-            warnings.warn(
-                "The use of `Config` class is deprecated for ModelSchema, use 'Meta' instead",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
-        else:
-            raise ConfigError(
-                f"ModelSchema class '{name}' requires a 'Meta' (or a 'Config') subclass"
-            )
-
-        assert issubclass(model, DjangoModel)
-
-        if not fields and not exclude:
-            raise ConfigError(
-                "Creating a ModelSchema without either the 'fields' attribute"
-                " or the 'exclude' attribute is prohibited"
-            )
-
-        if fields == "__all__":
-            fields = None
-            # ^ when None is passed to create_schema - all fields are selected
-
-        return MetaConf(
-            model=model,
-            fields=fields,
-            exclude=exclude,
-            fields_optional=optional_fields,
-        )
+        pass
 
 
 class ModelSchemaMetaclass(ResolverMetaclass):

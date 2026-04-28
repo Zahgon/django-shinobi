@@ -20,23 +20,10 @@ from ninja.utils import contribute_operation_callback
 
 
 def decorate_view(*decorators: Callable[..., Any]) -> Callable[[TCallable], TCallable]:
-    def outer_wrapper(op_func: TCallable) -> TCallable:
-        if hasattr(op_func, "_ninja_operation"):
-            # Means user used decorate_view on top of @api.method
-            _apply_decorators(decorators, op_func._ninja_operation)  # type: ignore
-        else:
-            # Means user used decorate_view after(bottom) of @api.method
-            contribute_operation_callback(
-                op_func, partial(_apply_decorators, decorators)
-            )
-
-        return op_func
-
-    return outer_wrapper
+    pass
 
 
 def _apply_decorators(
     decorators: Tuple[Callable[..., Any]], operation: Operation
 ) -> None:
-    for deco in decorators:
-        operation.run = deco(operation.run)  # type: ignore
+    pass

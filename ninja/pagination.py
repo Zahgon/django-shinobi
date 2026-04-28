@@ -51,11 +51,7 @@ class PaginationBase(ABC):
         Since lists are mainly compatible with QuerySets and can be passed to paginator.
         We will first to try to use .count - and if not there will use a len
         """
-        try:
-            # forcing to find queryset.count instead of list.count:
-            return queryset.all().count()
-        except AttributeError:
-            return len(queryset)
+        pass
 
 
 class AsyncPaginationBase(PaginationBase):
@@ -69,10 +65,7 @@ class AsyncPaginationBase(PaginationBase):
         pass  # pragma: no cover
 
     async def _aitems_count(self, queryset: QuerySet) -> int:
-        try:
-            return await queryset.all().acount()
-        except AttributeError:
-            return len(queryset)
+        pass
 
 
 class LimitOffsetPagination(AsyncPaginationBase):
@@ -94,12 +87,7 @@ class LimitOffsetPagination(AsyncPaginationBase):
         pagination: Input,
         **params: Any,
     ) -> Any:
-        offset = pagination.offset
-        limit: int = min(pagination.limit, settings.PAGINATION_MAX_LIMIT)
-        return {
-            "items": queryset[offset : offset + limit],
-            "count": self._items_count(queryset),
-        }  # noqa: E203
+        pass
 
     async def apaginate_queryset(
         self,
@@ -107,16 +95,7 @@ class LimitOffsetPagination(AsyncPaginationBase):
         pagination: Input,
         **params: Any,
     ) -> Any:
-        offset = pagination.offset
-        limit: int = min(pagination.limit, settings.PAGINATION_MAX_LIMIT)
-        if isinstance(queryset, QuerySet):
-            items = [obj async for obj in queryset[offset : offset + limit]]
-        else:
-            items = queryset[offset : offset + limit]
-        return {
-            "items": items,
-            "count": await self._aitems_count(queryset),
-        }  # noqa: E203
+        pass
 
 
 class PageNumberPagination(AsyncPaginationBase):
@@ -135,10 +114,7 @@ class PageNumberPagination(AsyncPaginationBase):
         super().__init__(**kwargs)
 
     def _get_page_size(self, requested_page_size: Optional[int]) -> int:
-        if requested_page_size is None:
-            return self.page_size
-
-        return min(requested_page_size, self.max_page_size)
+        pass
 
     def paginate_queryset(
         self,
@@ -146,12 +122,7 @@ class PageNumberPagination(AsyncPaginationBase):
         pagination: Input,
         **params: Any,
     ) -> Any:
-        page_size = self._get_page_size(pagination.page_size)
-        offset = (pagination.page - 1) * page_size
-        return {
-            "items": queryset[offset : offset + page_size],
-            "count": self._items_count(queryset),
-        }  # noqa: E203
+        pass
 
     async def apaginate_queryset(
         self,
@@ -159,18 +130,7 @@ class PageNumberPagination(AsyncPaginationBase):
         pagination: Input,
         **params: Any,
     ) -> Any:
-        page_size = self._get_page_size(pagination.page_size)
-        offset = (pagination.page - 1) * page_size
-
-        if isinstance(queryset, QuerySet):
-            items = [obj async for obj in queryset[offset : offset + page_size]]
-        else:
-            items = queryset[offset : offset + page_size]
-
-        return {
-            "items": items,
-            "count": await self._aitems_count(queryset),
-        }  # noqa: E203
+        pass
 
 
 def paginate(func_or_pgn_class: Any = NOT_SET, **paginator_params: Any) -> Callable:
@@ -201,7 +161,7 @@ def paginate(func_or_pgn_class: Any = NOT_SET, **paginator_params: Any) -> Calla
         pagination_class = func_or_pgn_class
 
     def wrapper(func: Callable) -> Any:
-        return _inject_pagination(func, pagination_class, **paginator_params)
+        pass
 
     return wrapper
 
@@ -211,68 +171,7 @@ def _inject_pagination(
     paginator_class: Type[Union[PaginationBase, AsyncPaginationBase]],
     **paginator_params: Any,
 ) -> Callable:
-    paginator = paginator_class(**paginator_params)
-    if is_async_callable(func):
-        if not hasattr(paginator, "apaginate_queryset"):
-            raise ConfigError("Pagination class not configured for async requests")
-
-        @wraps(func)
-        async def view_with_pagination(request: HttpRequest, **kwargs: Any) -> Any:
-            pagination_params = kwargs.pop("ninja_pagination")
-            if paginator.pass_parameter:
-                kwargs[paginator.pass_parameter] = pagination_params
-
-            items = await func(request, **kwargs)
-
-            result = await paginator.apaginate_queryset(
-                items, pagination=pagination_params, request=request, **kwargs
-            )
-
-            async def evaluate(results: Union[List, QuerySet]) -> AsyncGenerator:
-                for result in results:
-                    yield result
-
-            if paginator.Output:  # type: ignore
-                result[paginator.items_attribute] = [
-                    result
-                    async for result in evaluate(result[paginator.items_attribute])
-                ]
-            return result
-
-    else:
-
-        @wraps(func)
-        def view_with_pagination(request: HttpRequest, **kwargs: Any) -> Any:
-            pagination_params = kwargs.pop("ninja_pagination")
-            if paginator.pass_parameter:
-                kwargs[paginator.pass_parameter] = pagination_params
-
-            items = func(request, **kwargs)
-
-            result = paginator.paginate_queryset(
-                items, pagination=pagination_params, request=request, **kwargs
-            )
-            if paginator.Output:  # type: ignore
-                result[paginator.items_attribute] = list(
-                    result[paginator.items_attribute]
-                )
-                # ^ forcing queryset evaluation #TODO: check why pydantic did not do it here
-            return result
-
-    contribute_operation_args(
-        view_with_pagination,
-        "ninja_pagination",
-        paginator.Input,
-        paginator.InputSource,
-    )
-
-    if paginator.Output:  # type: ignore
-        contribute_operation_callback(
-            view_with_pagination,
-            partial(make_response_paginated, paginator),
-        )
-
-    return view_with_pagination
+    pass
 
 
 class RouterPaginated(Router):
@@ -283,10 +182,7 @@ class RouterPaginated(Router):
     def add_api_operation(
         self, path: str, methods: List[str], view_func: Callable, **kwargs: Any
     ) -> None:
-        response = kwargs["response"]
-        if is_collection_type(response):
-            view_func = _inject_pagination(view_func, self.pagination_class)
-        return super().add_api_operation(path, methods, view_func, **kwargs)
+        pass
 
 
 def make_response_paginated(paginator: PaginationBase, op: Operation) -> None:
@@ -301,26 +197,7 @@ def make_response_paginated(paginator: PaginationBase, op: Operation) -> None:
             items: List[Some]
             count: int
     """
-    status_code, item_schema = _find_collection_response(op)
-
-    # Switching schema to Output schema
-    try:
-        new_name = f"Paged{item_schema.__name__}"
-    except AttributeError:  # pragma: no cover
-        # special case for `typing.Any`, only raised for Python < 3.10
-        new_name = f"Paged{str(item_schema).replace('.', '_')}"  # pragma: no cover
-    new_schema = type(
-        new_name,
-        (paginator.Output,),
-        {
-            "__annotations__": {paginator.items_attribute: List[item_schema]},  # type: ignore
-        },
-    )  # typing: ignore
-
-    response = op._create_response_model(new_schema)
-
-    # Changing response model to newly created one
-    op.response_models[status_code] = response
+    pass
 
 
 def _find_collection_response(op: Operation) -> Tuple[int, Any]:
@@ -328,15 +205,4 @@ def _find_collection_response(op: Operation) -> Tuple[int, Any]:
     Walks through defined operation responses and finds the first
     that is of a collection type (e.g. List[SomeSchema])
     """
-    for code, resp_model in op.response_models.items():
-        if resp_model is None or resp_model is NOT_SET:
-            continue
-
-        model = resp_model.__annotations__["response"]
-        if is_collection_type(model):
-            item_schema = get_collection_args(model)[0]
-            return code, item_schema
-
-    raise ConfigError(
-        f'"{op.view_func}" has no collection response (e.g. response=List[SomeSchema])'
-    )
+    pass

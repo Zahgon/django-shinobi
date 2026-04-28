@@ -27,9 +27,7 @@ class UploadedFile(DjangoUploadedFile):
 
     @classmethod
     def _validate(cls, v: Any, _: Any) -> Any:
-        if not isinstance(v, DjangoUploadedFile):
-            raise ValueError(f"Expected UploadFile, received: {type(v)}")
-        return v
+        pass
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -39,11 +37,7 @@ class UploadedFile(DjangoUploadedFile):
 
 
 def validate_file_field(value: Any, info: ValidationInfo) -> Any:
-    if isinstance(value, FieldFile):
-        if not value:
-            return None
-        return value.url
-    return value
+    pass
 
 
 class _FileFieldType:

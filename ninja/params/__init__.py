@@ -93,20 +93,4 @@ def P(
     **extra: Any,
 ) -> Dict[str, Any]:
     "Arguments for BodyEx, QueryEx, etc."
-    return dict(
-        alias=alias,
-        title=title,
-        description=description,
-        gt=gt,
-        ge=ge,
-        lt=lt,
-        le=le,
-        min_length=min_length,
-        max_length=max_length,
-        pattern=pattern,
-        example=example,
-        examples=examples,
-        deprecated=deprecated,
-        include_in_schema=include_in_schema,
-        **extra,
-    )
+    pass

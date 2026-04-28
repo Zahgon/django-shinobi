@@ -35,7 +35,7 @@ class APIKeyQuery(APIKeyBase, ABC):
     openapi_in: str = "query"
 
     def _get_key(self, request: HttpRequest) -> Optional[str]:
-        return request.GET.get(self.param_name)
+        pass
 
 
 class APIKeyCookie(APIKeyBase, ABC):
@@ -46,16 +46,11 @@ class APIKeyCookie(APIKeyBase, ABC):
         super().__init__()
 
     def _get_key(self, request: HttpRequest) -> Optional[str]:
-        if self.csrf:
-            error_response = check_csrf(request)
-            if error_response:
-                raise HttpError(403, "CSRF check Failed")
-        return request.COOKIES.get(self.param_name)
+        pass
 
 
 class APIKeyHeader(APIKeyBase, ABC):
     openapi_in: str = "header"
 
     def _get_key(self, request: HttpRequest) -> Optional[str]:
-        headers = request.headers
-        return headers.get(self.param_name)
+        pass

@@ -22,4 +22,4 @@ class JSONRenderer(BaseRenderer):
     json_dumps_params: Mapping[str, Any] = {}
 
     def render(self, request: HttpRequest, data: Any, *, response_status: int) -> Any:
-        return json.dumps(data, cls=self.encoder_class, **self.json_dumps_params)
+        pass

@@ -19,24 +19,11 @@ class ModelToDict(dict):
 
     @classmethod
     def _validate(cls, input_value: Any) -> Any:
-        return input_value.model_dump(**cls._wrapped_model_dump_params)
+        pass
 
 
 def create_patch_schema(schema_cls: Type[Any]) -> Type[ModelToDict]:
-    values, annotations = {}, {}
-    for f in schema_cls.__fields__.keys():
-        t = schema_cls.__annotations__[f]
-        if not is_optional_type(t):
-            values[f] = getattr(schema_cls, f, None)
-            annotations[f] = Optional[t]
-    values["__annotations__"] = annotations
-    OptionalSchema = type(f"{schema_cls.__name__}Patch", (schema_cls,), values)
-
-    class OptionalDictSchema(ModelToDict):
-        _wrapped_model = OptionalSchema
-        _wrapped_model_dump_params = {"exclude_unset": True}
-
-    return OptionalDictSchema
+    pass
 
 
 class PatchDictUtil:

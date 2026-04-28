@@ -105,24 +105,7 @@ def Header(  # noqa: N802
     include_in_schema: bool = True,
     **extra: Any,
 ) -> Any:
-    return models.Header(
-        default,
-        alias=alias,
-        title=title,
-        description=description,
-        gt=gt,
-        ge=ge,
-        lt=lt,
-        le=le,
-        min_length=min_length,
-        max_length=max_length,
-        pattern=pattern,
-        example=example,
-        examples=examples,
-        deprecated=deprecated,
-        include_in_schema=include_in_schema,
-        **extra,
-    )
+    pass
 
 
 def Cookie(  # noqa: N802
@@ -144,24 +127,7 @@ def Cookie(  # noqa: N802
     include_in_schema: bool = True,
     **extra: Any,
 ) -> Any:
-    return models.Cookie(
-        default,
-        alias=alias,
-        title=title,
-        description=description,
-        gt=gt,
-        ge=ge,
-        lt=lt,
-        le=le,
-        min_length=min_length,
-        max_length=max_length,
-        pattern=pattern,
-        example=example,
-        examples=examples,
-        deprecated=deprecated,
-        include_in_schema=include_in_schema,
-        **extra,
-    )
+    pass
 
 
 def Body(  # noqa: N802
@@ -183,24 +149,7 @@ def Body(  # noqa: N802
     include_in_schema: bool = True,
     **extra: Any,
 ) -> Any:
-    return models.Body(
-        default,
-        alias=alias,
-        title=title,
-        description=description,
-        gt=gt,
-        ge=ge,
-        lt=lt,
-        le=le,
-        min_length=min_length,
-        max_length=max_length,
-        pattern=pattern,
-        example=example,
-        examples=examples,
-        deprecated=deprecated,
-        include_in_schema=include_in_schema,
-        **extra,
-    )
+    pass
 
 
 def Form(  # noqa: N802
@@ -222,24 +171,7 @@ def Form(  # noqa: N802
     include_in_schema: bool = True,
     **extra: Any,
 ) -> Any:
-    return models.Form(
-        default,
-        alias=alias,
-        title=title,
-        description=description,
-        gt=gt,
-        ge=ge,
-        lt=lt,
-        le=le,
-        min_length=min_length,
-        max_length=max_length,
-        pattern=pattern,
-        example=example,
-        examples=examples,
-        deprecated=deprecated,
-        include_in_schema=include_in_schema,
-        **extra,
-    )
+    pass
 
 
 def File(  # noqa: N802
@@ -261,21 +193,4 @@ def File(  # noqa: N802
     include_in_schema: bool = True,
     **extra: Any,
 ) -> Any:
-    return models.File(
-        default,
-        alias=alias,
-        title=title,
-        description=description,
-        gt=gt,
-        ge=ge,
-        lt=lt,
-        le=le,
-        min_length=min_length,
-        max_length=max_length,
-        pattern=pattern,
-        example=example,
-        examples=examples,
-        deprecated=deprecated,
-        include_in_schema=include_in_schema,
-        **extra,
-    )
+    pass

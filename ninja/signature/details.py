@@ -109,218 +109,28 @@ class ViewSignature:
 
     def _validate_view_path_params(self) -> None:
         """verify all path params are present in the path model fields"""
-        if self.path_params_names:
-            path_model = next(
-                (m for m in self.models if m.__ninja_param_source__ == "path"), None
-            )
-            missing = tuple(
-                sorted(
-                    name
-                    for name in self.path_params_names
-                    if not (path_model and name in path_model.__ninja_flatten_map__)
-                )
-            )
-            if missing:
-                warnings.warn_explicit(
-                    UserWarning(
-                        f"Field(s) {missing} are in the view path, but were not found in the view signature."
-                    ),
-                    category=None,
-                    filename=inspect.getfile(self.view_func),
-                    lineno=inspect.getsourcelines(self.view_func)[1],
-                    source=None,
-                )
+        pass
 
     def _create_models(self) -> TModels:
-        params_by_source_cls: Dict[Any, List[FuncParam]] = defaultdict(list)
-        for param in self.params:
-            param_source_cls = type(param.source)
-            params_by_source_cls[param_source_cls].append(param)
-
-        is_multipart_response_with_body = Body in params_by_source_cls and (
-            File in params_by_source_cls or Form in params_by_source_cls
-        )
-        if is_multipart_response_with_body:
-            params_by_source_cls[_MultiPartBody] = params_by_source_cls.pop(Body)
-
-        result = []
-        for param_cls, args in params_by_source_cls.items():
-            cls_name: str = param_cls.__name__ + "Params"
-            attrs = {i.name: i.source for i in args}
-            attrs["__ninja_param_source__"] = param_cls._param_source()
-            attrs["__ninja_flatten_map_reverse__"] = {}
-
-            if attrs["__ninja_param_source__"] == "file":
-                pass
-
-            elif attrs["__ninja_param_source__"] in {
-                "form",
-                "query",
-                "header",
-                "cookie",
-                "path",
-            }:
-                flatten_map = self._args_flatten_map(args)
-                attrs["__ninja_flatten_map__"] = flatten_map
-                attrs["__ninja_flatten_map_reverse__"] = {
-                    v: (k,) for k, v in flatten_map.items()
-                }
-
-            else:
-                assert attrs["__ninja_param_source__"] == "body"
-                if is_multipart_response_with_body:
-                    attrs["__ninja_body_params__"] = {
-                        i.alias: i.annotation for i in args
-                    }
-                else:
-                    # ::TODO:: this is still sus.  build some test cases
-                    attrs["__read_from_single_attr__"] = (
-                        args[0].name if len(args) == 1 else None
-                    )
-
-            # adding annotations
-            attrs["__annotations__"] = {i.name: i.annotation for i in args}
-
-            # collection fields:
-            attrs["__ninja_collection_fields__"] = detect_collection_fields(
-                args, attrs.get("__ninja_flatten_map__", {})
-            )
-
-            base_cls = param_cls._model
-            model_cls = type(cls_name, (base_cls,), attrs)
-            # TODO: https://pydantic-docs.helpmanual.io/usage/models/#dynamic-model-creation - check if anything special in create_model method that I did not use
-            result.append(model_cls)
-        return result
+        pass
 
     def _args_flatten_map(self, args: List[FuncParam]) -> Dict[str, Tuple[str, ...]]:
-        flatten_map = {}
-        arg_names: Any = {}
-        for arg in args:
-            if is_pydantic_model(arg.annotation):
-                for name, path in self._model_flatten_map(arg.annotation, arg.alias):
-                    if name in flatten_map:
-                        raise ConfigError(
-                            f"Duplicated name: '{name}' in params: '{arg_names[name]}' & '{arg.name}'"
-                        )
-                    flatten_map[name] = tuple(path.split(self.FLATTEN_PATH_SEP))
-                    arg_names[name] = arg.name
-            else:
-                name = arg.alias
-                if name in flatten_map:
-                    raise ConfigError(
-                        f"Duplicated name: '{name}' also in '{arg_names[name]}'"
-                    )
-                flatten_map[name] = (name,)
-                arg_names[name] = name
-
-        return flatten_map
+        pass
 
     def _model_flatten_map(self, model: TModel, prefix: str) -> Generator:
-        field: FieldInfo
-        for attr, field in model.model_fields.items():
-            field_name = field.alias or attr
-            name = f"{prefix}{self.FLATTEN_PATH_SEP}{field_name}"
-            if is_pydantic_model(field.annotation):
-                yield from self._model_flatten_map(field.annotation, name)  # type: ignore
-            else:
-                yield field_name, name
+        pass
 
     def _get_param_type(self, name: str, arg: inspect.Parameter) -> FuncParam:
         # _EMPTY = self.signature.empty
-        annotation = arg.annotation
-        default = arg.default
-
-        if get_origin(annotation) is Annotated:
-            args = get_args(annotation)
-            if isinstance(args[1], Param):
-                prev_default = default
-                annotation, default = args
-                if prev_default != self.signature.empty:
-                    default.default = prev_default
-
-        if annotation == self.signature.empty:
-            if default == self.signature.empty:
-                annotation = str
-            else:
-                if isinstance(default, Param):
-                    annotation = type(default.default)
-                else:
-                    annotation = type(default)
-
-            if annotation == PydanticUndefined.__class__:
-                # TODO: ^ check why is that so
-                annotation = str
-
-        if annotation == type(None) or annotation == type(Ellipsis):  # noqa
-            annotation = str
-
-        is_collection = is_collection_type(annotation)
-
-        if annotation == UploadedFile or (
-            is_collection and annotation.__args__[0] == UploadedFile
-        ):
-            # People often forgot to mark UploadedFile as a File, so we better assign it automatically
-            if default == self.signature.empty or default is None:
-                default = default == self.signature.empty and ... or default
-                return FuncParam(name, name, File(default), annotation, is_collection)
-
-        # 1) if type of the param is defined as one of the Param's subclasses - we just use that definition
-        if isinstance(default, Param):
-            param_source = default
-
-        # 2) if param name is a part of the path parameter
-        elif name in self.path_params_names:
-            assert (
-                default == self.signature.empty
-            ), f"'{name}' is a path param, default not allowed"
-            param_source = Path(...)
-
-        # 3) if param is a collection, or annotation is part of pydantic model:
-        elif is_collection or is_pydantic_model(annotation):
-            if default == self.signature.empty:
-                param_source = Body(...)
-            else:
-                param_source = Body(default)
-
-        # 4) the last case is query param
-        else:
-            if default == self.signature.empty:
-                param_source = Query(...)
-            else:
-                param_source = Query(default)
-
-        return FuncParam(
-            name, param_source.alias or name, param_source, annotation, is_collection
-        )
+        pass
 
 
 def is_pydantic_model(cls: Any) -> bool:
-    try:
-        origin = get_origin(cls)
-
-        # Handle Annotated types - extract the actual type
-        if origin is Annotated:
-            args = get_args(cls)
-            return is_pydantic_model(args[0])
-
-        # Handle Union types
-        if origin in UNION_TYPES:
-            return any(issubclass(arg, pydantic.BaseModel) for arg in get_args(cls))
-        return issubclass(cls, pydantic.BaseModel)
-    except TypeError:  # pragma: no cover
-        return False
+    pass
 
 
 def is_collection_type(type_annotation: Type) -> bool:
-    def wrapper(t: Type) -> bool:
-        collection_types = (List, list, set, tuple)
-        return (
-            isinstance(t, collection_types)
-            if not isinstance(t, type)
-            else issubclass(t, collection_types)
-        )
-
-    return has_type(type_annotation, wrapper)
+    pass
 
 
 def detect_collection_fields(
@@ -331,78 +141,17 @@ def detect_collection_fields(
     better the input parameters if it's a list or a single value
     This method detects attributes that should be treated by ninja as lists and returns this list as a result
     """
-    result = [i.alias or i.name for i in args if i.is_collection]
-
-    if flatten_map:
-        args_d = {arg.alias: arg for arg in args}
-        for path in (p for p in flatten_map.values() if len(p) > 1):
-            annotation_or_field: Any = args_d[path[0]].annotation
-            for attr in path[1:]:
-                if hasattr(annotation_or_field, "annotation"):
-                    annotation_or_field = annotation_or_field.annotation
-                annotation_or_field = next(
-                    (
-                        a
-                        for a in annotation_or_field.model_fields.values()
-                        if a.alias == attr
-                    ),
-                    annotation_or_field.model_fields.get(attr),
-                )  # pragma: no cover
-
-                annotation_or_field = getattr(
-                    annotation_or_field, "outer_type_", annotation_or_field
-                )
-
-            # if hasattr(annotation_or_field, "annotation"):
-            annotation_or_field = annotation_or_field.annotation
-
-            if is_collection_type(annotation_or_field):
-                result.append(path[-1])
-    return result
+    pass
 
 
 def is_optional(type_annotation: Type) -> bool:
-    def wrapper(t: Type) -> bool:
-        # NoneType
-        return t is None or t is type(None)
-
-    return has_type(type_annotation, wrapper)
+    pass
 
 
 def is_classvar_type(type_annotation: Type) -> bool:
-    def wrapper(t: Type) -> bool:
-        return t is ClassVar
-
-    return has_type(type_annotation, wrapper)
+    pass
 
 
 def has_type(type_annotation: Type, f: Callable[[Type], bool]) -> bool:
     # Unwrap any type aliases (List, Set, etc.)
-    origin = get_origin(type_annotation)
-    if origin is not None and f(origin):
-        return True
-
-    # Try to decompose the type
-    args = get_args(type_annotation)
-
-    # Type can't be decomposed further, check the annotation itself
-    if len(args) == 0:
-        return f(type_annotation)
-
-    # Annotations should only have their first argument resolved
-    if isinstance(type_annotation, _AnnotatedAlias):
-        return has_type(args[0], f)
-
-    # Filter out anything we don't need
-    if len(args) > 1:
-        new_args = []
-        for a in args:
-            # Optional type hint, isn't required
-            if a is None:
-                continue  # pragma: no cover
-
-            new_args.append(a)
-
-        args = tuple(new_args)
-
-    return any(has_type(i, f) for i in args)
+    pass

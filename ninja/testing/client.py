@@ -13,12 +13,7 @@ from ninja.responses import Response as HttpResponse
 
 
 def build_absolute_uri(location: Optional[str] = None) -> str:
-    base = "http://testlocation/"
-
-    if location:
-        base = urljoin(base, location)
-
-    return base
+    pass
 
 
 # TODO: this should be changed
@@ -85,117 +80,33 @@ class NinjaClientBase:
         json: Any = None,
         **request_params: Any,
     ) -> "NinjaResponse":
-        if json is not None:
-            request_params["body"] = json_dumps(json, cls=NinjaJSONEncoder)
-        if data is None:
-            data = {}
-        if self.headers or request_params.get("headers"):
-            request_params["headers"] = {
-                **self.headers,
-                **request_params.get("headers", {}),
-            }
-        if self.cookies or request_params.get("COOKIES"):
-            request_params["COOKIES"] = {
-                **self.cookies,
-                **request_params.get("COOKIES", {}),
-            }
-        func, request, kwargs = self._resolve(method, path, data, request_params)
-        return self._call(func, request, kwargs)  # type: ignore
+        pass
 
     @property
     def urls(self) -> List:
-        if not hasattr(self, "_urls_cache"):
-            self._urls_cache: List
-            if isinstance(self.router_or_app, NinjaAPI):
-                self._urls_cache = self.router_or_app.urls[0]
-            else:
-                api = NinjaAPI()
-                self.router_or_app.set_api_instance(api)
-                self._urls_cache = list(self.router_or_app.urls_paths(""))
-        return self._urls_cache
+        pass
 
     def _resolve(
         self, method: str, path: str, data: Dict, request_params: Any
     ) -> Tuple[Callable, Mock, Dict]:
-        url_path = path.split("?")[0].lstrip("/")
-        for url in self.urls:
-            match = url.resolve(url_path)
-            if match:
-                request = self._build_request(method, path, data, request_params)
-                return match.func, request, match.kwargs
-        raise Exception(f'Cannot resolve "{path}"')
+        pass
 
     def _build_request(
         self, method: str, path: str, data: Dict, request_params: Any
     ) -> Mock:
-        request = Mock(spec=HttpRequest)
-        request.method = method
-        request.path = path
-        request.body = ""
-        request.COOKIES = {}
-        request._dont_enforce_csrf_checks = True
-        request.is_secure.return_value = False
-        request.build_absolute_uri = build_absolute_uri
-
-        request.auth = None
-        request.user = Mock()
-        if "user" not in request_params:
-            request.user.is_authenticated = False
-            request.user.is_staff = False
-            request.user.is_superuser = False
-
-        request.META = request_params.pop("META", {"REMOTE_ADDR": "127.0.0.1"})
-        request.FILES = request_params.pop("FILES", {})
-
-        request.META.update({
-            f"HTTP_{k.replace('-', '_')}": v
-            for k, v in request_params.pop("headers", {}).items()
-        })
-
-        request.headers = HttpHeaders(request.META)
-
-        if isinstance(data, QueryDict):
-            request.POST = data
-        else:
-            request.POST = QueryDict(mutable=True)
-
-            if isinstance(data, (str, bytes)):
-                request_params["body"] = data
-            elif data:
-                for k, v in data.items():
-                    request.POST[k] = v
-
-        if "?" in path:
-            request.GET = QueryDict(path.split("?")[1])
-        else:
-            query_params = request_params.pop("query_params", None)
-            if query_params:
-                query_dict = QueryDict(mutable=True)
-                for k, v in query_params.items():
-                    if isinstance(v, list):
-                        for item in v:
-                            query_dict.appendlist(k, item)
-                    else:
-                        query_dict[k] = v
-                request.GET = query_dict
-            else:
-                request.GET = QueryDict()
-
-        for k, v in request_params.items():
-            setattr(request, k, v)
-        return request
+        pass
 
 
 class TestClient(NinjaClientBase):
     def _call(self, func: Callable, request: Mock, kwargs: Dict) -> "NinjaResponse":
-        return NinjaResponse(func(request, **kwargs))
+        pass
 
 
 class TestAsyncClient(NinjaClientBase):
     async def _call(
         self, func: Callable, request: Mock, kwargs: Dict
     ) -> "NinjaResponse":
-        return NinjaResponse(await func(request, **kwargs))
+        pass
 
 
 class NinjaResponse:
@@ -210,13 +121,11 @@ class NinjaResponse:
         self._data = None
 
     def json(self) -> Any:
-        return json_loads(self.content)
+        pass
 
     @property
     def data(self) -> Any:
-        if self._data is None:  # Recomputes if json() is None but cheap then
-            self._data = self.json()
-        return self._data
+        pass
 
     def __getitem__(self, key: str) -> Any:
         return self._response[key]

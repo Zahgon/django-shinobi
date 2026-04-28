@@ -20,26 +20,11 @@ __all__ = [
 
 def get_typed_signature(call: Callable[..., Any]) -> inspect.Signature:
     "Finds call signature and resolves all forwardrefs"
-    signature = inspect.signature(call)
-    globalns = getattr(call, "__globals__", {})
-    typed_params = [
-        inspect.Parameter(
-            name=param.name,
-            kind=param.kind,
-            default=param.default,
-            annotation=get_typed_annotation(param, globalns),
-        )
-        for param in signature.parameters.values()
-    ]
-    typed_signature = inspect.Signature(typed_params)
-    return typed_signature
+    pass
 
 
 def get_typed_annotation(param: inspect.Parameter, globalns: DictStrAny) -> Any:
-    annotation = param.annotation
-    if isinstance(annotation, str):
-        annotation = make_forwardref(annotation, globalns)
-    return annotation
+    pass
 
 
 def make_forwardref(annotation: str, globalns: DictStrAny) -> Any:
@@ -47,36 +32,32 @@ def make_forwardref(annotation: str, globalns: DictStrAny) -> Any:
     # from pydantic._internal._typing_extra import try_eval_type
     # usage:
     # result, _ = try_eval_type(forward_ref, globalns, globalns)
-    forward_ref = ForwardRef(annotation)
-    return evaluate_forwardref(forward_ref, globalns, globalns)
+    pass
 
 
 def get_path_param_names(path: str) -> Set[str]:
     """turns path string like /foo/{var}/path/{int:another}/end to set {'var', 'another'}"""
-    return {item.strip("{}").split(":")[-1] for item in re.findall("{[^}]*}", path)}
+    pass
 
 
 def is_async(callable: Callable[..., Any]) -> bool:
-    return asyncio.iscoroutinefunction(callable)
+    pass
 
 
 def has_kwargs(func: Callable[..., Any]) -> bool:
-    for param in inspect.signature(func).parameters.values():
-        if param.kind == param.VAR_KEYWORD:
-            return True
-    return False
+    pass
 
 
 def get_args_names(func: Callable[..., Any]) -> List[str]:
     "returns list of function argument names"
-    return list(inspect.signature(func).parameters.keys())
+    pass
 
 
 class UUIDStrConverter(UUIDConverter):
     """Return a path converted UUID as a str instead of the standard UUID"""
 
     def to_python(self, value: str) -> str:  # type: ignore
-        return value  # return string value instead of UUID
+        pass
 
 
 register_converter(UUIDStrConverter, "uuidstr")

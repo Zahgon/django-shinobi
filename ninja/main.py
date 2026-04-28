@@ -422,26 +422,13 @@ class NinjaAPI:
 
             Django URL configuration
         """
-        self._validate()
-        return (
-            self._get_urls(),
-            "ninja",
-            self.urls_namespace.split(":")[-1],
-            # ^ if api included into nested urls, we only care about last bit here
-        )
+        pass
 
     def _get_urls(self) -> List[Union[URLResolver, URLPattern]]:
-        result = get_openapi_urls(self)
-
-        for prefix, router in self._routers:
-            result.extend(router.urls_paths(prefix))
-
-        result.append(get_root_url(self))
-        return result
+        pass
 
     def get_root_path(self, path_params: DictStrAny) -> str:
-        name = f"{self.urls_namespace}:api-root"
-        return reverse(name, kwargs=path_params)
+        pass
 
     def create_response(
         self,
@@ -451,27 +438,13 @@ class NinjaAPI:
         status: Optional[int] = None,
         temporal_response: Optional[HttpResponse] = None,
     ) -> HttpResponse:
-        if temporal_response:
-            status = temporal_response.status_code
-        assert status
-
-        content = self.renderer.render(request, data, response_status=status)
-
-        if temporal_response:
-            response = temporal_response
-            response.content = content
-        else:
-            response = HttpResponse(
-                content, status=status, content_type=self.get_content_type()
-            )
-
-        return response
+        pass
 
     def create_temporal_response(self, request: HttpRequest) -> HttpResponse:
-        return HttpResponse("", content_type=self.get_content_type())
+        pass
 
     def get_content_type(self) -> str:
-        return f"{self.renderer.media_type}; charset={self.renderer.charset}"
+        pass
 
     def get_openapi_schema(
         self,
@@ -484,87 +457,45 @@ class NinjaAPI:
         return get_schema(api=self, path_prefix=path_prefix)
 
     def get_openapi_operation_id(self, operation: "Operation") -> str:
-        name = operation.view_func.__name__
-        module = operation.view_func.__module__
-        return (module + "_" + name).replace(".", "_")
+        pass
 
     def get_operation_url_name(self, operation: "Operation", router: Router) -> str:
         """
         Get the default URL name to use for an operation if it wasn't
         explicitly provided.
         """
-        return operation.view_func.__name__
+        pass
 
     def add_exception_handler(
         self, exc_class: Type[_E], handler: ExcHandler[_E]
     ) -> None:
-        assert issubclass(exc_class, Exception)
-        self._exception_handlers[exc_class] = handler
+        pass
 
     def exception_handler(
         self, exc_class: Type[Exception]
     ) -> Callable[[TCallable], TCallable]:
         def decorator(func: TCallable) -> TCallable:
-            self.add_exception_handler(exc_class, func)
-            return func
+            pass
 
         return decorator
 
     def set_default_exception_handlers(self) -> None:
-        set_default_exc_handlers(self)
+        pass
 
     def on_exception(self, request: HttpRequest, exc: Exc[_E]) -> HttpResponse:
-        handler = self._lookup_exception_handler(exc)
-        if handler is None:
-            raise exc
-        return handler(request, exc)
+        pass
 
     def validation_error_from_error_contexts(
         self, error_contexts: List[ValidationErrorContext]
     ) -> ValidationError:
-        errors: List[Dict[str, Any]] = []
-        for context in error_contexts:
-            model = context.model
-            e = context.pydantic_validation_error
-            for i in e.errors(include_url=False):
-                i["loc"] = (
-                    model.__ninja_param_source__,
-                ) + model.__ninja_flatten_map_reverse__.get(i["loc"], i["loc"])
-                # removing pydantic hints
-                del i["input"]  # type: ignore
-                if (
-                    "ctx" in i
-                    and "error" in i["ctx"]
-                    and isinstance(i["ctx"]["error"], Exception)
-                ):
-                    i["ctx"]["error"] = str(i["ctx"]["error"])
-                errors.append(dict(i))
-        return ValidationError(errors)
+        pass
 
     def _lookup_exception_handler(self, exc: Exc[_E]) -> Optional[ExcHandler[_E]]:
-        for cls in type(exc).__mro__:
-            if cls in self._exception_handlers:
-                return self._exception_handlers[cls]
-
-        return None
+        pass
 
     def _validate(self) -> None:
         # urls namespacing validation
-        skip_registry = os.environ.get("NINJA_SKIP_REGISTRY", False)
-        if (
-            not skip_registry
-            and self.urls_namespace in NinjaAPI._registry
-            and not debug_server_url_reimport()
-        ):
-            msg = f"""
-Looks like you created multiple NinjaAPIs or TestClients
-To let ninja distinguish them you need to set either unique version or urls_namespace
- - NinjaAPI(..., version='2.0.0')
- - NinjaAPI(..., urls_namespace='otherapi')
-Already registered: {NinjaAPI._registry}
-"""
-            raise ConfigError(msg.strip())
-        NinjaAPI._registry.append(self.urls_namespace)
+        pass
 
 
 _imported_while_running_in_debug_server = is_debug_server()
@@ -613,4 +544,4 @@ def debug_server_url_reimport() -> bool:
         True if this module was originally imported during Django dev-server
         init but the caller is not being running during Django dev-server init.
     """
-    return _imported_while_running_in_debug_server and not is_debug_server()
+    pass

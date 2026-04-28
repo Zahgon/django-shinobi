@@ -85,49 +85,26 @@ class Throttled(HttpError):
 
 
 def set_default_exc_handlers(api: "NinjaAPI") -> None:
-    api.add_exception_handler(
-        Exception,
-        partial(_default_exception, api=api),
-    )
-    api.add_exception_handler(
-        Http404,
-        partial(_default_404, api=api),
-    )
-    api.add_exception_handler(
-        HttpError,
-        partial(_default_http_error, api=api),
-    )
-    api.add_exception_handler(
-        ValidationError,
-        partial(_default_validation_error, api=api),
-    )
+    pass
 
 
 def _default_404(request: HttpRequest, exc: Exception, api: "NinjaAPI") -> HttpResponse:
-    msg = "Not Found"
-    if settings.DEBUG:
-        msg += f": {exc}"
-    return api.create_response(request, {"detail": msg}, status=404)
+    pass
 
 
 def _default_http_error(
     request: HttpRequest, exc: HttpError, api: "NinjaAPI"
 ) -> HttpResponse:
-    return api.create_response(request, {"detail": str(exc)}, status=exc.status_code)
+    pass
 
 
 def _default_validation_error(
     request: HttpRequest, exc: ValidationError, api: "NinjaAPI"
 ) -> HttpResponse:
-    return api.create_response(request, {"detail": exc.errors}, status=422)
+    pass
 
 
 def _default_exception(
     request: HttpRequest, exc: Exception, api: "NinjaAPI"
 ) -> HttpResponse:
-    if not settings.DEBUG:
-        raise exc  # let django deal with it
-
-    logger.exception(exc)
-    tb = traceback.format_exc()
-    return HttpResponse(tb, status=500, content_type="text/plain")
+    pass

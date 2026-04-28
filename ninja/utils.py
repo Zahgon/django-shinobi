@@ -14,13 +14,11 @@ __all__ = [
 
 
 def replace_path_param_notation(path: str) -> str:
-    return path.replace("{", "<").replace("}", ">")
+    pass
 
 
 def normalize_path(path: str) -> str:
-    while "//" in path:
-        path = path.replace("//", "/")
-    return path
+    pass
 
 
 def _no_view() -> None:
@@ -30,10 +28,7 @@ def _no_view() -> None:
 def check_csrf(
     request: HttpRequest, callback: Callable = _no_view
 ) -> Optional[HttpResponseForbidden]:
-    mware = CsrfViewMiddleware(lambda x: HttpResponseForbidden())  # pragma: no cover
-    request.csrf_processing_done = False  # type: ignore
-    mware.process_request(request)
-    return mware.process_view(request, callback, (), {})
+    pass
 
 
 def is_debug_server() -> bool:
@@ -45,32 +40,23 @@ def is_debug_server() -> bool:
 
 
 def is_async_callable(f: Callable[..., Any]) -> bool:
-    return inspect.iscoroutinefunction(f) or inspect.iscoroutinefunction(
-        getattr(f, "__call__", None)
-    )
+    pass
 
 
 def is_optional_type(t: Type[Any]) -> bool:
-    try:
-        return type(None) in t.__args__
-    except AttributeError:
-        return False
+    pass
 
 
 def contribute_operation_callback(
     func: Callable[..., Any], callback: Callable[..., Any]
 ) -> None:
-    if not hasattr(func, "_ninja_contribute_to_operation"):
-        func._ninja_contribute_to_operation = []  # type: ignore
-    func._ninja_contribute_to_operation.append(callback)  # type: ignore
+    pass
 
 
 def contribute_operation_args(
     func: Callable[..., Any], arg_name: str, arg_type: Type, arg_source: Any
 ) -> None:
-    if not hasattr(func, "_ninja_contribute_args"):
-        func._ninja_contribute_args = []  # type: ignore
-    func._ninja_contribute_args.append((arg_name, arg_type, arg_source))  # type: ignore
+    pass
 
 
 def get_annotations(namespace: Dict[str, Any]) -> Any:
@@ -79,20 +65,4 @@ def get_annotations(namespace: Dict[str, Any]) -> Any:
     :param namespace:
     :return:
     """
-    # Python 3.13 and earlier
-    if "__annotations__" in namespace:
-        return namespace.get("__annotations__", {})
-
-    # Python 3.14 and newer
-    try:
-        import annotationlib
-    except ImportError:
-        return {}
-
-    func = annotationlib.get_annotate_from_class_namespace(namespace)
-    if func:
-        return annotationlib.call_annotate_function(
-            func, format=annotationlib.Format.FORWARDREF
-        )
-    # Pydantic should error for any class missing type annotations
-    return {}  # pragma: no cover
+    pass
